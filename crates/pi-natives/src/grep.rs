@@ -1427,17 +1427,19 @@ fn build_grep_walk_request(
 		.cloned()
 		.unwrap_or_else(pi_walker::WalkFilter::files_only);
 
-	pi_walker::WalkRequest::new(search_path)
+	let root = if fs.is_symlink(search_path) {
+		iofs::canonical_search_path(fs, search_path.to_path_buf())
+	} else {
+		search_path.to_path_buf()
+	};
+
+	pi_walker::WalkRequest::new(root)
 		.filesystem(fs.clone())
 		.hidden(include_hidden)
 		.gitignore(use_gitignore)
 		.skip_git(true)
 		.skip_node_modules(skip_node_modules)
-		.follow_links(if fs.is_symlink(search_path) {
-			pi_walker::FollowLinks::Roots
-		} else {
-			pi_walker::FollowLinks::Never
-		})
+		.follow_links(pi_walker::FollowLinks::Never)
 		.detail(pi_walker::WalkDetail::Minimal)
 		.size_hints(pi_walker::SizeHintPolicy::WhenCheap)
 		.order(order)
