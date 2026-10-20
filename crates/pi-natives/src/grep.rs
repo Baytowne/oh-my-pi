@@ -1433,7 +1433,11 @@ fn build_grep_walk_request(
 		.gitignore(use_gitignore)
 		.skip_git(true)
 		.skip_node_modules(skip_node_modules)
-		.follow_links(pi_walker::FollowLinks::Never)
+		.follow_links(if fs.is_symlink(search_path) {
+			pi_walker::FollowLinks::Roots
+		} else {
+			pi_walker::FollowLinks::Never
+		})
 		.detail(pi_walker::WalkDetail::Minimal)
 		.size_hints(pi_walker::SizeHintPolicy::WhenCheap)
 		.order(order)
